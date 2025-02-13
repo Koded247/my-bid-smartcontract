@@ -8,7 +8,7 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 contract MyBid is Ownable {
     using SafeMath for uint256;
 
-    // parameters
+ 
     struct Auction {
         address seller;
         uint256 itemID; 
@@ -20,7 +20,6 @@ contract MyBid is Ownable {
         uint256 highestBid;
     }
 
-    // struct
     struct Bid {
         bytes32 encryptedBid; 
         uint256 deposit;
@@ -42,12 +41,11 @@ contract MyBid is Ownable {
     event AuctionEnded(address winner, uint256 highestBid);
     event FundsTransferred(address seller, uint256 amount);
 
-    // Constructor with added parameter for NFT contract address
     constructor(address _nftContractAddress) {
         nftContractAddress = IERC721(_nftContractAddress);
     }
 
-    // Constructor to initialize the auction 
+
     function createAuction(uint256 _itemID, uint256 _minBid, uint256 _deadline) external onlyOwner {
         if (_deadline <= block.timestamp) {
             revert("Deadline must be in the future");
@@ -65,7 +63,7 @@ contract MyBid is Ownable {
         emit AuctionCreated(_itemID, _minBid, _deadline);
     }
 
-    // Submit an encrypted bid with a deposit
+
     function submitEncryptedBid(bytes32 _encryptedBid) external payable {
         if (block.timestamp >= auction.deadline) {
             revert("Auction has ended");
@@ -85,7 +83,7 @@ contract MyBid is Ownable {
         emit BidSubmitted(msg.sender, _encryptedBid);
     }
 
-    // Reveal the actual bid
+
     function revealBid(uint256 _bid, bytes32 _secret) external {
         if (block.timestamp < auction.deadline) {
             revert("Auction is still ongoing");
@@ -102,7 +100,7 @@ contract MyBid is Ownable {
             revert("Bid already revealed");
         }
 
-        // Verify the encrypted bid
+      
         bytes32 hashedBid = keccak256(abi.encodePacked(_bid, _secret));
         if (hashedBid != bid.encryptedBid) {
             revert("Invalid bid reveal");
@@ -110,20 +108,20 @@ contract MyBid is Ownable {
 
         bid.revealed = true;
         if (_bid > auction.highestBid && _bid >= auction.minBid) {
-            // Refund the previous highest bidder
+
             if (auction.highestBidder != address(0)) {
                 refunds[auction.highestBidder] = refunds[auction.highestBidder].add(bids[auction.highestBidder].deposit);
             }
             auction.highestBidder = msg.sender;
             auction.highestBid = _bid;
         } else {
-            // Refund the bidder if their bid is not the highest
+         
             refunds[msg.sender] = refunds[msg.sender].add(bid.deposit);
         }
         emit BidRevealed(msg.sender, _bid);
     }
 
-    // End.. pick winner
+ 
     function endAuction() external onlyOwner {
         if (block.timestamp < auction.revealDeadline) {
             revert("Reveal period not ended");
@@ -136,7 +134,7 @@ contract MyBid is Ownable {
         emit AuctionEnded(auction.highestBidder, auction.highestBid);
     }
 
-    // Transfer funds to seller and transfer the NFT
+
     function transferItemAndFunds() external onlyOwner {
         if (!auction.ended) {
             revert("Auction not ended");
@@ -152,16 +150,14 @@ contract MyBid is Ownable {
         }
         emit FundsTransferred(auction.seller, amount);
 
-        // Transfer the NFT to the highest bidder
         try nftContractAddress.transferFrom(auction.seller, auction.highestBidder, auction.itemID) {
-            // NFT transfer was successful
+            
         } catch {
-            // Handle the case where transfer fails
+            
             revert("NFT transfer failed");
         }
     }
 
-    // Withdraw refunds for non-winning bidders
     function withdrawRefund() external {
         uint256 refund = refunds[msg.sender];
         if (refund == 0) {
@@ -175,7 +171,7 @@ contract MyBid is Ownable {
         }
     }
 
-    // Fallback function to prevent accidental Ether transfers
+    
     receive() external payable {
         revert("Direct payments not allowed");
     }

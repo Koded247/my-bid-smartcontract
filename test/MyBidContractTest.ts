@@ -8,7 +8,7 @@ import hre from "hardhat";
 import { ethers } from "hardhat";
 
 describe("MyNFT and MyBid Contract Tests", function () {
-  // We define a fixture to reuse the same setup in every test.
+
   async function deployContractsFixture() {
     const [owner, bidder1, bidder2] = await ethers.getSigners();
 
@@ -47,13 +47,13 @@ describe("MyNFT and MyBid Contract Tests", function () {
       
       await myNFT.connect(owner).safeMint(owner.address, 1);
       const minBid = ethers.utils.parseEther("0.01");
-      const deadline = (await time.latest()) + 86400; // One day from now
+      const deadline = (await time.latest()) + 86400; 
 
       await myBid.connect(owner).createAuction(1, minBid, deadline);
       const auction = await myBid.auction();
       expect(auction.itemID).to.equal(1);
       expect(auction.minBid).to.equal(minBid);
-      expect(auction.deadline).to.be.closeTo(deadline, 10); // Allow for some time discrepancy
+      expect(auction.deadline).to.be.closeTo(deadline, 10);
     });
 
     it("Should submit and reveal a bid", async function () {
@@ -61,8 +61,7 @@ describe("MyNFT and MyBid Contract Tests", function () {
       
       await myNFT.connect(owner).safeMint(owner.address, 1);
       const minBid = ethers.utils.parseEther("0.01");
-      const deadline = (await time.latest()) + 86400; // One day from now
-      
+      const deadline = (await time.latest()) + 86400; 
       await myBid.connect(owner).createAuction(1, minBid, deadline);
       
       const bidAmount = ethers.utils.parseEther("0.02");
@@ -73,7 +72,7 @@ describe("MyNFT and MyBid Contract Tests", function () {
         .to.emit(myBid, "BidSubmitted")
         .withArgs(bidder1.address, encryptedBid);
       
-      await time.increaseTo(deadline + 1); // Move time forward past the auction deadline
+      await time.increaseTo(deadline + 1);
       
       await expect(myBid.connect(bidder1).revealBid(bidAmount, secret))
         .to.emit(myBid, "BidRevealed")
@@ -85,7 +84,7 @@ describe("MyNFT and MyBid Contract Tests", function () {
       
       await myNFT.connect(owner).safeMint(owner.address, 1);
       const minBid = ethers.utils.parseEther("0.01");
-      const deadline = (await time.latest()) + 86400; // One day from now
+      const deadline = (await time.latest()) + 86400; 
       
       await myBid.connect(owner).createAuction(1, minBid, deadline);
       
@@ -95,14 +94,13 @@ describe("MyNFT and MyBid Contract Tests", function () {
       
       await myBid.connect(bidder1).submitEncryptedBid(encryptedBid, { value: bidAmount });
       
-      await time.increaseTo(deadline + 1); // Move time forward past the auction deadline
+      await time.increaseTo(deadline + 1);
       await myBid.connect(bidder1).revealBid(bidAmount, secret);
       
-      await time.increaseTo(deadline + 86400 + 1); // Move time past reveal deadline
+      await time.increaseTo(deadline + 86400 + 1); 
       
       await expect(myBid.connect(owner).endAuction())
-        .to.emit(myBid, "AuctionEnded")
-        .withArgs(bidder1.address, bidAmount);
+        .to.emit(myBid, "AuctionEnded")        .withArgs(bidder1.address, bidAmount);
       
       await expect(myBid.connect(owner).transferItemAndFunds())
         .to.emit(myNFT, "Transfer")

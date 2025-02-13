@@ -1,15 +1,13 @@
 import { ethers } from "hardhat";
 
 async function main() {
-    // Address to which you want to mint the NFT
-    const receiverAddress = "0xYourReceiverAddressHere"; // Replace with the address that should receive the NFT
-    const tokenId = 2; // Next available token ID
 
-    // Get the deployed contract instance
+    const receiverAddress = "0xYourReceiverAddressHere"; 
+    const tokenId = 2; 
+
     const MyNFT = await ethers.getContractFactory("MyNFT");
-    const myNFT = await MyNFT.attach("0xMyNFTAddressHere"); // Replace with the address where MyNFT was deployed
+    const myNFT = await MyNFT.attach("0xMyNFTAddressHere"); 
 
-    // Mint the NFT
     await myNFT.safeMint(receiverAddress, tokenId);
     console.log(`NFT with ID ${tokenId} minted to ${receiverAddress}`);
 }
